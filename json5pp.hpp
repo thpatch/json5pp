@@ -137,7 +137,7 @@ public:
   using null_type = std::nullptr_t;
   using boolean_type = bool;
   using number_type = double;
-  using integer_type = int;
+  using integer_type = long long;
   using number_i_type = integer_type;
   using string_type = std::string;
   using string_p_type = const char*;
