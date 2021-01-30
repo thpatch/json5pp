@@ -924,6 +924,19 @@ private:
   }
 
   /**
+   * @brief Check if a character is a hex digit [0-9A-Fa-f]
+   *
+   * @param ch Character code to test
+   * @retval true The character is a hex digit
+   * @retval false The character is not a hex digit
+   */
+  static bool is_hex_digit(int ch) {
+      return (('0' <= ch) && (ch <= '9')) ||
+             (('A' <= ch) && (ch <= 'F')) ||
+             (('a' <= ch) && (ch <= 'f'));
+  }
+
+  /**
    * @brief Convert a digit character [0-9] to number (0-9)
    * 
    * @param ch Character code to convert
@@ -1104,27 +1117,19 @@ private:
     }
     // [digit|digits]
     for (;;) {
-      if (ch == '0') {
+      if (has_flag(flags::hexadecimal) && ch == '0') {
         // ["0"]
         ch = istream.get();
-        if (has_flag(flags::hexadecimal) && ((ch == 'x') || (ch == 'X'))) {
+        if ((ch == 'x') || (ch == 'X')) {
           // [hexdigit]+
-          bool no_digit = true;
-          for (;;) {
-            ch = istream.get();
-            int digit = to_number_hex(ch);
-            if (digit < 0) {
-              istream.unget();
-              break;
-            }
-            int_part = (int_part << 4) | digit;
-            no_digit = false;
+          ch = istream.get();
+          if (is_hex_digit(ch)) {
+              int_part = to_number_hex(ch);
+              for (; ch = istream.get(), is_hex_digit(ch);) {
+                  int_part <<= 4;
+                  int_part += to_number_hex(ch);
+              }
           }
-          if (no_digit) {
-            throw syntax_error(ch, context);
-          }
-          v = negative ? (double)(-(long long)int_part) : (double)int_part;
-          return;
         }
         break;
       } else if (is_digit(ch)) {
