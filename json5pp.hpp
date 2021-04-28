@@ -142,8 +142,8 @@ public:
   using string_type = std::string;
   using string_p_type = const char*;
   using array_type = std::vector<value>;
-  using object_type = std::map<string_type, value>;
-  using pair_type = object_type::value_type;
+  using pair_type = std::pair<string_type, value>;
+  using object_type = std::vector<pair_type>;
   using json_type = std::string;
 
   /*================================================================================
@@ -517,8 +517,9 @@ public:
   const value& at(const string_type& key, const value& default_value) const
   {
     if (type == TYPE_OBJECT) {
-      auto iter = content.object.find(key);
-      if (iter != content.object.end()) {
+      auto end = content.object.end();
+      auto iter = std::find_if(content.object.begin(), end, [&key](const pair_type& elem) { return elem.first == key; });
+      if (iter != end) {
         return iter->second;
       }
     }
@@ -1420,8 +1421,8 @@ private:
         throw syntax_error(ch, context);
       }
       // [value]
-      auto result = elements.emplace(key, nullptr);
-      parse_value(result.first->second, context);
+      auto& result = elements.emplace_back(key, nullptr);
+      parse_value(result.second, context);
     }
   }
 
